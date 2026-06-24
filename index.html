@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hammer Online Storefront</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f6f9; margin: 0; padding: 12px; color: #333; }
+        .header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; position: sticky; top: 0; background: #f4f6f9; padding-top: 4px; z-index: 100; }
+        .search-bar { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; }
+        .categories { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+        .categories::-webkit-scrollbar { display: none; }
+        .cat-chip { background: #fff; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #ddd; white-space: nowrap; cursor: pointer; }
+        .cat-chip.active { background: #0088cc; color: #fff; border-color: #0088cc; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; border: 1px solid #eee; }
+        .card-img { width: 100%; height: 120px; background: #0088cc10; display: flex; align-items: center; justify-content: center; color: #0088cc; font-weight: bold; }
+        .card-info { padding: 10px; display: flex; flex-direction: column; flex-grow: 1; }
+        .card-title { font-size: 14px; font-weight: bold; margin: 0 0 4px 0; color: #222; }
+        .card-price { font-size: 15px; color: #0088cc; font-weight: 700; margin-bottom: 6px; }
+        .card-tag { font-size: 11px; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; align-self: flex-start; margin-bottom: 10px; }
+        .view-btn { width: 100%; background: #0088cc; color: white; border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <input type="text" id="search" class="search-bar" placeholder="🔍 Search marketplace..." oninput="renderItems()">
+        <div class="categories" id="cat-container">
+            <div class="cat-chip active" onclick="filterCat('ALL', this)">✨ All Items</div>
+            <div class="cat-chip" onclick="filterCat('Clothes', this)">👕 Clothes</div>
+            <div class="cat-chip" onclick="filterCat('Shoes', this)">👟 Shoes</div>
+            <div class="cat-chip" onclick="filterCat('Phones', this)">📱 Phones</div>
+            <div class="cat-chip" onclick="filterCat('Electronics', this)">💻 Electronics</div>
+            <div class="cat-chip" onclick="filterCat('Household', this)">🏠 Household</div>
+            <div class="cat-chip" onclick="filterCat('Furniture', this)">🛋️ Furniture</div>
+            <div class="cat-chip" onclick="filterCat('BabyProducts', this)">🍼 Baby Products</div>
+            <div class="cat-chip" onclick="filterCat('Cosmetics', this)">💄 Cosmetics</div>
+            <div class="cat-chip" onclick="filterCat('Gifts', this)">🎁 Gifts</div>
+            <div class="cat-chip" onclick="filterCat('Automotive', this)">🚗 Automotive</div>
+        </div>
+    </div>
+    <div class="grid" id="market-grid"></div>
+
+    <script>
+        // Temporary preview items until connected live to database endpoint API
+        let items = [
+            { id: 1, name: "Sample iPhone 14 Pro", category: "Phones", condition: "Brand New", price: "75,000 ETB", seller: "HammeronlineMarket" },
+            { id: 2, name: "Designer Leather Shoes", category: "Shoes", condition: "Slightly Used", price: "3,500 ETB", seller: "HammeronlineMarket" }
+        ];
+        
+        let selectedCategory = 'ALL';
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        function filterCat(cat, el) {
+            document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            selectedCategory = cat;
+            renderItems();
+        }
+
+        function renderItems() {
+            const grid = document.getElementById('market-grid');
+            const searchVal = document.getElementById('search').value.toLowerCase();
+            grid.innerHTML = '';
+
+            const filtered = items.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(searchVal);
+                const matchesCat = selectedCategory === 'ALL' || item.category === selectedCategory;
+                return matchesSearch && matchesCat;
+            });
+
+            filtered.forEach(item => {
+                grid.innerHTML += `
+                    <div class="card">
+                        <div class="card-img">📦 ${item.category}</div>
+                        <div class="card-info">
+                            <div class="card-title">${item.name}</div>
+                            <div class="card-price">${item.price}</div>
+                            <div class="card-tag">${item.condition}</div>
+                            <button class="view-btn" onclick="openSeller('${item.seller}')">Contact Seller</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        function openSeller(username) { tg.openTelegramLink('https://t.me/' + username.replace('@', '')); }
+        window.onload = renderItems;
+    </script>
+</body>
+</html>
